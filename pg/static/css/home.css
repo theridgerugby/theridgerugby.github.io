@@ -1,0 +1,331 @@
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif, Georgia, Times, 'Times New Roman', serif;
+}
+
+.menu-toggle{
+    display:none;
+}
+
+body {
+    min-height: 100vh;
+    max-height:100vh;
+    background-color:darkgreen;
+}
+
+body.disabled{
+    position: fixed;
+    height:100%;
+    width:100%;
+    z-index:-100;
+    top:0;
+    .container{
+        pointer-events: none;
+        user-select: none;
+        touch-action: none;
+    }
+}
+
+.header{
+    position: fixed;
+    top: -10px;;
+    left: -100px;
+    width: 110%;
+    padding: 8px 7% 8px 8%;
+    padding-top:20px;
+    background:rgba(20, 120, 20, 0.25);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 120;
+    font-size: 40px;
+    
+}
+
+
+.navbar a{
+    position: relative;
+    font-size: 26px;
+    color: #fff;
+    font-weight: 500;
+    text-decoration: none;
+    margin-left: 35px;
+}
+
+.navbar a::before{
+    content: '';
+    position: absolute;
+    top:100%;
+    left:0;
+    width:0;
+    height:5px;
+    background:#0D5CF1 ;
+    transition: .7s;
+}
+
+.navbar a:hover::before{
+    width:100%;
+}
+
+.container {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    z-index:0;
+}
+
+.background{
+    position: fixed;
+    width: 100%;
+    height: 100vh;
+    background-image: url('../images/group.jpg');
+    background-size: cover;
+    background-position: center;
+    z-index: -50;
+}
+
+.text{
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color:white;
+    font-size: 40px;
+    text-align: center;
+    z-index: 100;
+}
+
+.more-button {
+    position: relative;
+    margin-top:20px;
+    border-radius: 12px;
+    padding: 10px 24px;
+    font-size: 20px;
+    border:0px;
+    transition: all 0.5s;
+    cursor: pointer;
+    background-color:red;
+    color: #fff;
+}
+  
+.more-button span {
+    cursor: pointer;
+    display: inline-block;
+    position: relative;
+    transition: 0.5s;
+}
+  
+.more-button span:after {
+    content: '>>';
+    position: absolute;
+    opacity: 0;
+    top: 0;
+    right: -20px;
+    transition: 0.5s;
+    padding-left:5px;
+}
+
+.more-button:hover span {
+    padding-right: 30px;
+}
+  
+.more-button:hover span:after {
+    opacity: 1;
+    right: 0;
+}
+
+.footerContainer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 20px 0;
+    background-color: rgba(0, 0, 0, 0);
+    z-index: 0;
+}
+.footerBottom {
+    text-align: center;
+    padding: top -20px;;
+    font-size:15px;
+    line-height:20px;
+    color:rgba(255, 255, 255, 0.8);
+    z-index: 0;
+}
+
+.weather{
+    position: absolute;
+    top:90%;
+    left:5%;
+    color: white;
+    align-items: center;
+    justify-content: center;
+    display: flex;
+    z-index: 100;
+}
+
+.buttons button{
+    cursor:pointer;
+    font-size: 15px;
+    border:0px;
+    border-radius: 1px;
+    outline:none;
+    width:fit-content;
+    margin-left: 1px;
+    margin-right: 1px;
+    transition: transform 0.3s ease-in-out, margin 0.3s ease-in-out;
+}
+
+.overlay{
+    background: rgba(0, 0, 0, 0.3);
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    width:100%;
+    height:100vh;
+    overflow: hidden;
+    z-index:0;
+}
+
+.effect{
+    position: fixed;
+    width: 100vw;
+    height: 100vh;
+    top: 0;
+    left: 0;
+    overflow: hidden;
+    z-index: 5;
+}
+
+canvas {
+    position: fixed;
+    width: 100vw;
+    height: 100vh;
+    top: 0;
+    left: 0;
+    overflow: hidden;
+    z-index: 5;
+}
+
+.music{
+    position: fixed;
+    top:85%;
+    left:80%;
+    overflow: hidden;
+    display: block;
+    z-index: 100;
+}
+
+.messageContainer{
+    position: fixed;
+    bottom:12%;
+    left:5%;
+    transition: opacity 1s ease-in-out;
+    z-index: 100;
+}
+
+.messageBox {
+    background-color:lightslategrey;
+    color: #fff;
+    padding: 15px;
+    padding-right:20px;
+    padding-top: 25px;
+    border-radius: 2px;
+    font-size: 17px;
+}
+
+.closeButton {
+    background-color: transparent;
+    color: #fff;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    position: absolute;
+    top: 0px;
+    right: 10px;
+    font-size: 20px;
+}
+
+.messageGraphic {
+    background-image: url('../images/MessageBox.png');
+    width: 73px;
+    height: 100px;
+    position: absolute;
+    background-size:cover;
+    top: -60px;
+    left: 30%;
+    opacity: 1;
+    overflow: visible;
+}
+
+
+@media only screen and (max-width: 890px) {
+
+    .music{
+        display:none;
+    }
+
+    .music-button{
+        display:none;
+    }
+
+    .header{
+        top:0;
+        left: 0;
+        width: 100%;
+        padding: 40px 10%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 100;
+        background-color: transparent;
+    }
+    
+    
+    .navbar {
+        display: none;
+        flex-direction: column;
+        position: absolute;
+        top: 120px;
+        right:8%;
+        border-radius: 3px;
+        background-color: rgba(0,0,0,1);
+        width: 45%;
+        height: fit-content;
+        z-index: 500;
+        transition: 0.5s ease-in-out;
+    }
+
+    .navbar.show {
+        display: flex;
+        position: fixed;
+        z-index: 500;
+    }
+
+    .navbar a {
+        margin: 20px;
+        color: #fff;
+    }
+
+    .menu-toggle{
+        font-size: 20px;
+        color: #fff;
+        display:block;
+        cursor:pointer;
+    }
+    
+    .messageContainer{
+        position:absolute;
+    }
+
+    .buttons button{
+        font-size: min(3.5vw, 15px);
+        width:6vw;
+        height:6vw;
+        margin:0 0;
+        line-height: 0;
+        vertical-align: middle;
+        padding: 2px, 2px;
+    }
+}
