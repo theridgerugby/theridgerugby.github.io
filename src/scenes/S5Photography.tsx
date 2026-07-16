@@ -142,7 +142,8 @@ const dialogWidth = (aspectRatio: number) => {
 
 // —— Reference-carousel constants (DESIGN.md §6) ——
 const D = 1350; // perspective distance
-const CARD_GAP = 0;
+const CARD_GAP = 36;
+const PEEK = -55; // push the peeking card's edge past the screen boundary
 const THICKNESS = [-1.47, -0.73, 0, 0.73, 1.47]; // volumetric glass slab slices
 
 const smooth = (t: number) => t * t * (3 - 2 * t);
@@ -153,20 +154,46 @@ export function S5Photography({ localP }: S5Props) {
   const frameId = useRef(0);
   const localPRef = useRef(localP);
   localPRef.current = localP;
+  const mouse = useRef({ x: 0, y: 0, tx: 0, ty: 0 });
   const [metrics, setMetrics] = useState({ cardW: 336, cardH: 211 });
   const [focused, setFocused] = useState<number | null>(null);
   const [flipped, setFlipped] = useState(false);
   const focusedRef = useRef<number | null>(focused);
   focusedRef.current = focused;
 
-  // The centred photograph is the viewport, not a smaller object within it.
+  // Responsive card sizing keeps the previous compact, credit-card-like frame.
   useEffect(() => {
     const onResize = () => {
-      setMetrics({ cardW: window.innerWidth, cardH: window.innerHeight });
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      let cardW = Math.round(w * 0.16 + 130);
+      const heightFactor = Math.min(1, Math.max(0.65, h / 850));
+      cardW = Math.min(336, Math.max(150, Math.round(cardW * heightFactor)));
+      setMetrics({ cardW, cardH: Math.round(cardW / 1.5925) });
     };
     onResize();
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  // Restore the subtle cursor-led tilt from the previous gallery.
+  useEffect(() => {
+    const onMove = (event: MouseEvent) => {
+      const rx = (event.clientX - window.innerWidth / 2) / (window.innerWidth / 2);
+      const ry = (event.clientY - window.innerHeight / 2) / (window.innerHeight / 2);
+      mouse.current.tx = Math.max(-1, Math.min(1, rx));
+      mouse.current.ty = Math.max(-1, Math.min(1, ry));
+    };
+    const onLeave = () => {
+      mouse.current.tx = 0;
+      mouse.current.ty = 0;
+    };
+    window.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseleave", onLeave);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseleave", onLeave);
+    };
   }, []);
 
   // 60fps imperative render loop (reference math; progress bound to SCROLL)
@@ -178,6 +205,9 @@ export function S5Photography({ localP }: S5Props) {
       }
 
       const lp = localPRef.current;
+      const cursor = mouse.current;
+      cursor.x += (cursor.tx - cursor.x) * 0.08;
+      cursor.y += (cursor.ty - cursor.y) * 0.08;
       const intro = remap(lp, 0, 0.1);
       const browse = remap(lp, 0.1, 0.8);
       const out = remap(lp, 0.8, 0.94);
@@ -196,6 +226,7 @@ export function S5Photography({ localP }: S5Props) {
         rig.style.opacity = `${1 - out * 0.35}`;
       }
 
+      const h = window.innerHeight;
       const { cardH } = metrics;
 
       for (let i = 0; i < WORKS.length; i++) {
@@ -222,34 +253,44 @@ export function S5Photography({ localP }: S5Props) {
         if (absOffset <= 1) {
           const t = smooth(absOffset);
           y = -sign * (t * (cardH + CARD_GAP));
-          z = -t * 180;
+          z = 400 + t * (220 - 400);
           rot = t * 132;
         } else if (absOffset <= 2) {
           const t = smooth(absOffset - 1);
-          y = -sign * (cardH + t * cardH * 0.3);
-          z = -180 - t * 140;
+          const zEnd = -60;
+          const sEnd = D / (D - zEnd);
+          const yEnd = (h / 2 - PEEK) / sEnd - cardH / 2;
+          y = -sign * (cardH + CARD_GAP + t * (yEnd - (cardH + CARD_GAP)));
+          z = 220 + t * (zEnd - 220);
           rot = 132 + t * (175 - 132);
         } else {
           const t = smooth(Math.min(absOffset - 2, 1));
-          y = -sign * (cardH * 1.3 + t * cardH * 0.3);
-          z = -320 - t * 160;
+          const zStart = -60;
+          const sEnd2 = D / (D - zStart);
+          const yEnd2 = (h / 2 - PEEK) / sEnd2 - cardH / 2;
+          const zEnd3 = -250;
+          const sEnd3 = D / (D - zEnd3);
+          const yEnd3 = (h / 2 + 100) / sEnd3 + cardH / 2;
+          y = -sign * (yEnd2 + t * (yEnd3 - yEnd2));
+          z = zStart + t * (zEnd3 - zStart);
           rot = 175 + t * (195 - 175);
         }
 
-        // Keep the centred image perfectly flush with the viewport. The 3D
-        // glass edge appears only while one photograph turns into the next.
+        // Only the centred card follows the cursor.
         const centerFactor = Math.max(0, 1 - absOffset);
+        const tiltX = -cursor.y * 12 * centerFactor;
+        const tiltY = cursor.x * 15 * centerFactor;
         const localRot = -sign * rot;
 
         // staggered rise-in during the intro beat
         const introOpacity = remap(intro, i * 0.05, i * 0.05 + 0.5);
         const introY = (1 - intro) * (40 + i * 6);
 
-        card.style.zIndex = `${Math.round(500 + z)}`;
+        card.style.zIndex = `${Math.round(z)}`;
         card.style.opacity = `${introOpacity}`;
         card.style.transform =
           `translateY(${(y + introY).toFixed(2)}px) translateZ(${z.toFixed(2)}px) ` +
-          `rotateX(${localRot.toFixed(2)}deg)`;
+          `rotateX(${(localRot + tiltX).toFixed(2)}deg) rotateY(${tiltY.toFixed(2)}deg) rotateZ(-3deg)`;
 
         // only the centred card is clickable (click → enlarge)
         const clickable = centerFactor > 0.55 && out < 0.15;
@@ -306,7 +347,7 @@ export function S5Photography({ localP }: S5Props) {
                   return (
                     <div
                       key={layerIdx}
-                      className="absolute inset-0 pointer-events-none"
+                      className="absolute inset-0 rounded-[16px] pointer-events-none"
                       style={{
                         background: "rgba(222,230,243,0.92)",
                         border: "1px solid rgba(235,241,250,0.95)",
@@ -321,7 +362,7 @@ export function S5Photography({ localP }: S5Props) {
                   return (
                     <div
                       key={layerIdx}
-                      className="absolute inset-0 overflow-hidden pointer-events-none"
+                      className="absolute inset-0 rounded-[16px] overflow-hidden pointer-events-none"
                       style={{
                         backgroundColor: "#0c0e14",
                         backgroundImage: `url(${workSrc(w, 640)})`,
@@ -332,9 +373,9 @@ export function S5Photography({ localP }: S5Props) {
                         boxShadow: "inset 0 1px 1px rgba(255,255,255,0.2), 0 24px 60px rgba(0,0,0,0.5)",
                       }}
                     >
-                      <FramedWorkImage work={w} alt="" sizes="100vw" />
+                      <FramedWorkImage work={w} alt="" sizes="(max-width: 640px) 75vw, 336px" />
                       {/* faux-glass rim (no backdrop filters inside 3D — DESIGN.md §1.3) */}
-                      <div className="glass-rim" />
+                      <div className="glass-rim rounded-[16px]" />
                       {/* soft top sheen */}
                       <div className="absolute inset-x-0 top-0 h-1/3" style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.14), rgba(255,255,255,0))" }} />
                     </div>
@@ -345,7 +386,7 @@ export function S5Photography({ localP }: S5Props) {
                 return (
                   <div
                     key={layerIdx}
-                    className="absolute inset-0 overflow-hidden pointer-events-none"
+                    className="absolute inset-0 rounded-[16px] overflow-hidden pointer-events-none"
                     style={{
                       background: "#0c0e14",
                       transform: `translateZ(${zOffset}px) rotateX(180deg)`,
@@ -373,7 +414,7 @@ export function S5Photography({ localP }: S5Props) {
                       </div>
                       <div className="mt-1 text-[9px] tracking-wider text-white/55">{w.taken}</div>
                     </div>
-                    <div className="glass-rim" />
+                    <div className="glass-rim rounded-[16px]" />
                   </div>
                 );
               })}
@@ -470,7 +511,7 @@ export function S5Photography({ localP }: S5Props) {
             <p className="mt-1 text-[10px] text-white/50">{WORKS[focused].taken}</p>
           </div>
           <p className="font-mono text-white/65 text-[11px] tracking-[0.2em] uppercase text-center">
-            press the image to flip · escape or close to return
+            click to flip · esc to close
           </p>
         </AccessibleDialog>
       ) : null}

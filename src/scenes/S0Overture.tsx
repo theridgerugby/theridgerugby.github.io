@@ -48,7 +48,7 @@ export function S0Overture({ localP }: S0Props) {
         style={{ opacity: dadTextOpacity, pointerEvents: "none" }}
       >
         <BlurText
-          text="My dad loves photographing our family. His pictures became my memories of the years I was too young to remember."
+          text="My dad loves photographing our family. His pictures became my memory of years I was too young to remember."
           progress={remap(localP, 0.38, 0.56)}
           className="font-body text-white/90 text-xl leading-relaxed text-scrim"
         />

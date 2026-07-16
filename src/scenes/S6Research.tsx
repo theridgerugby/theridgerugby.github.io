@@ -31,7 +31,7 @@ export function S6Research({ localP }: S6Props) {
       {/* ── Manifesto intertitle ── */}
       <div className="absolute inset-0 flex items-center justify-center px-16 pointer-events-none" style={{ opacity: manifesto }}>
         <p className="font-heading italic font-light text-white text-5xl tracking-[0.015em] leading-snug text-center max-w-[30ch]">
-          and now, I want to understand how the human brain perceives the world — and why some of it feels so special to us.
+          and now, I want to understand how the human brain perceives the world — and why some of it feels special.
         </p>
       </div>
 
@@ -41,7 +41,7 @@ export function S6Research({ localP }: S6Props) {
         <div className="absolute inset-0 flex items-center justify-center" style={{ transform: `translateY(${(1 - aT) * 3}vh)` }}>
           <GlassSurface frost className="research-panel rounded-[22px] px-10 py-8" style={{ width: "min(72vw, 820px)" }}>
             <p className="font-mono text-[10px] tracking-[0.3em] uppercase text-white/65">
-              research 01 · first paper · manuscript in preparation
+              research 01 · manuscript in preparation
             </p>
             <h2
               id="research-01-title"

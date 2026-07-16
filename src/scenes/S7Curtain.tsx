@@ -47,7 +47,7 @@ export function S7Curtain({ heroPlayback, onResearch }: S7Props) {
           onClick={onResearch}
           aria-label="Go to the research scene"
         >
-          Back to research I’m working on
+          Back to my research
         </GlassButton>
         <GlassLink
           frost

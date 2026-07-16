@@ -64,7 +64,7 @@ export function ReadingExperience({ canReturnToCinema = false, onReturnToCinema 
           <p className="reading-kicker">Ethan Gan · a story in eight acts</p>
           <h1 id="reading-title" tabIndex={-1}>The things that stayed with me.</h1>
           <p className="reading-deck">
-            An autobiographical film about memory, migration, image-making, and the effort to understand perception.
+            A film about memory, migration, and the effort to understand what we see.
           </p>
           <div className="reading-hero__actions">
             <a className="reading-cue" href="#the-opening">Read the story</a>
@@ -79,7 +79,7 @@ export function ReadingExperience({ canReturnToCinema = false, onReturnToCinema 
         <p className="reading-act">Act I · Overture</p>
         <h2>Before I could remember</h2>
         <p className="reading-lead">
-          My dad loves photographing our family. His pictures became my memories of the years I was too young to remember.
+          My dad loves photographing our family. His pictures became my memory of years I was too young to remember.
         </p>
         <p className="reading-aside">And then, my childhood ended.</p>
       </section>
@@ -131,7 +131,7 @@ export function ReadingExperience({ canReturnToCinema = false, onReturnToCinema 
         <div className="reading-section-heading">
           <p className="reading-act">Act VI · Photography</p>
           <h2 id="images-heading">Learning to look</h2>
-          <p>Visual studies drawn from the moving images of this story.</p>
+          <p>Stills from the film.</p>
         </div>
         <div className="reading-studies">
           {VISUAL_STUDIES.map((work) => (
@@ -148,7 +148,7 @@ export function ReadingExperience({ canReturnToCinema = false, onReturnToCinema 
           <p className="reading-act">Act VII · The research</p>
           <h2 id="research-heading">How does the brain decide what feels special?</h2>
           <p>
-            The images led to a question: how do people perceive the world—and why does some of it feel beautiful, difficult, or worth remembering?
+            The images raised a question: how do we see the world — and why does some of it feel beautiful, difficult, or worth remembering?
           </p>
         </div>
         <article className="reading-research__study">
