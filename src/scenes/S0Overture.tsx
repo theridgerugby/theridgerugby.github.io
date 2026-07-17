@@ -31,7 +31,7 @@ export function S0Overture({ localP }: S0Props) {
       <video
         ref={videoRef}
         src="/media/world.mp4"
-        poster="/media/gallery/overture.jpg"
+        poster="/media/gallery/overture-precise.jpg"
         muted
         playsInline
         preload="metadata"

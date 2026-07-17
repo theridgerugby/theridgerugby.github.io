@@ -288,7 +288,7 @@ function HeroClip({
           type='video/mp4; codecs="hvc1"'
           media="(dynamic-range: high)"
         />
-        <source src="/media/stag-hero.mp4" type='video/mp4; codecs="avc1"' />
+        <source src="/media/stag-hero-sdr-hable.mp4" type='video/mp4; codecs="avc1"' />
       </video>
     </div>
   );

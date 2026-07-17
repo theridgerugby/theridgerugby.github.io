@@ -40,7 +40,7 @@ const MEMORIES = [
 
 const VISUAL_STUDIES = [
   { src: "/media/desk/ribs-freeze.jpg", alt: "A blue-lit stage seen through a rib-like opening.", title: "Stage in Blue" },
-  { src: "/media/gallery/overture.jpg", alt: "A translucent lavender stag turns toward the camera.", title: "Overture" },
+  { src: "/media/gallery/overture-precise.jpg", alt: "A translucent lavender stag turns toward the camera.", title: "Overture" },
   { src: "/media/gallery/arrival.jpg", alt: "The Immigration and Customs hall at Toronto Pearson airport.", title: "Arrival" },
   { src: "/media/gallery/guide.jpg", alt: "A luminous stag runs through darkness.", title: "The Guide" },
   { src: "/media/gallery/curtain.jpg", alt: "A luminous stag waits at the edge of a dark stage.", title: "Curtain" },
@@ -55,7 +55,7 @@ export function ReadingExperience({ canReturnToCinema = false, onReturnToCinema 
     <main id="reading-version" className="reading-experience">
       <header className="reading-hero">
         <img
-          src="/media/gallery/overture.jpg"
+          src="/media/gallery/overture-precise.jpg"
           alt="A translucent lavender stag in a dark, cinematic landscape."
           className="reading-hero__image"
         />
