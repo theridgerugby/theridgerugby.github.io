@@ -4,10 +4,10 @@
 export const SCENE_LENGTHS = {
   s0: 3.2, // Overture — portrait/eyes/run/vault
   s1: 2.2, // The Question — WeChat beat
-  s2: 1.6, // Arrival — pearson scroll-scrub
+  s2: 2.4, // Arrival — slower Pearson scroll-scrub
   s3: 1.6, // Life Here — family-archive projector reel
   s4: 4.0, // Blue Memoirs — ribs → memory desk → memoir poster → reading hold
-  s5: 2.4, // Photography — 3D carousel browse, rig slides right out
+  s5: 3.6, // Photography — slower 3D carousel browse, rig slides right out
   s6: 2.8, // Research — manifesto intertitle + two glass vitrines
   s7: 1.4, // Curtain — A3 hero run + signature
   s5Prelude: 1.5, // Camera intertitle before the photography gallery

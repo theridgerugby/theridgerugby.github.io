@@ -300,8 +300,16 @@ function App() {
 
   useEffect(() => {
     const root = document.documentElement;
+    const body = document.body;
     root.classList.toggle("cinematic-scrollbar", !showReadingMode);
+    root.classList.toggle("reading-scroll", showReadingMode);
 
+    if (showReadingMode) {
+      root.classList.remove("experience-loading");
+      if (root.style.overflow === "hidden") root.style.removeProperty("overflow");
+      if (body.style.overflow === "hidden") body.style.removeProperty("overflow");
+      if (body.style.touchAction === "none") body.style.removeProperty("touch-action");
+    }
     if (previousReadingMode.current !== null && previousReadingMode.current !== showReadingMode) {
       window.scrollTo({ top: 0, left: 0, behavior: "auto" });
       requestAnimationFrame(() => {
@@ -312,7 +320,10 @@ function App() {
     }
     previousReadingMode.current = showReadingMode;
 
-    return () => root.classList.remove("cinematic-scrollbar");
+    return () => {
+      root.classList.remove("cinematic-scrollbar");
+      root.classList.remove("reading-scroll");
+    };
   }, [showReadingMode]);
 
   useEffect(() => {

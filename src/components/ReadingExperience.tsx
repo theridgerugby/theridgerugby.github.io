@@ -187,6 +187,7 @@ export function ReadingExperience({ canReturnToCinema = false, onReturnToCinema 
         <div className="reading-curtain__copy">
           <p className="reading-act">Act VIII · Curtain</p>
           <h2>So, yeah—this is me. Ethan Gan.</h2>
+          <p className="reading-curtain__thanks">thanks for watching.</p>
           <div className="reading-actions">
             <a href="https://github.com/theridgerugby" target="_blank" rel="noreferrer" aria-label="GitHub (opens in a new tab)">GitHub <ExternalLink size={16} strokeWidth={1.7} aria-hidden="true" /></a>
             <a href="mailto:ethan.gan@mail.utoronto.ca" aria-label="Email Ethan Gan at ethan.gan@mail.utoronto.ca">Email</a>

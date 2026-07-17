@@ -32,6 +32,9 @@ export function S7Curtain({ heroPlayback, onResearch }: S7Props) {
           >
             So, yeah—this is me. Ethan Gan.
           </h2>
+          <p className="mt-3 text-center font-heading italic font-light text-lg tracking-[0.035em] text-white/65">
+            thanks for watching.
+          </p>
         </div>
       </div>
       <div

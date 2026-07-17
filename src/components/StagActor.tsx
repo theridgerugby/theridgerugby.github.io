@@ -136,8 +136,10 @@ function CompanionVideo({
   const idleRef = useRef<HTMLVideoElement>(null);
   const [runFailed, setRunFailed] = useState(false);
   const [idleFailed, setIdleFailed] = useState(false);
+  const [hasSettled, setHasSettled] = useState(false);
   const running = phase === "running";
   const settling = phase === "settling";
+  const restingOnLastFrame = phase === "resting" && hasSettled;
   const crossfade = running ? "opacity 0.16s ease-out" : "opacity 0.35s ease";
 
   useEffect(() => {
@@ -148,6 +150,7 @@ function CompanionVideo({
     if (phase === "running") {
       stopVideo.pause();
       stopVideo.currentTime = 0;
+      setHasSettled(false);
       runVideo.play().catch(() => {});
       return;
     }
@@ -163,8 +166,12 @@ function CompanionVideo({
     }
 
     stopVideo.pause();
-    stopVideo.currentTime = 0;
   }, [onSettled, phase]);
+
+  const handleIdleEnded = () => {
+    setHasSettled(true);
+    onSettled();
+  };
 
   return (
     <>
@@ -180,7 +187,7 @@ function CompanionVideo({
         alt=""
         className="absolute inset-0 w-full h-full object-contain object-bottom"
         style={{
-          opacity: settling && !idleFailed ? 0 : running ? 0 : 1,
+          opacity: (settling || restingOnLastFrame) && !idleFailed ? 0 : running ? 0 : 1,
           transition: crossfade,
           transformOrigin: "50% 100%",
           transform: "translateX(-2.4%) translateY(-12.7%) scale(0.734)",
@@ -207,14 +214,14 @@ function CompanionVideo({
         poster={POSTERS.stagIdle}
         muted playsInline
         preload="auto"
-        onEnded={onSettled}
+        onEnded={handleIdleEnded}
         onError={() => {
           setIdleFailed(true);
           onSettled();
         }}
         className="absolute inset-0 w-full h-full object-contain object-bottom"
         style={{
-          opacity: settling && !idleFailed ? 1 : 0,
+          opacity: (settling || restingOnLastFrame) && !idleFailed ? 1 : 0,
           transition: crossfade,
           transformOrigin: "50% 100%",
           transform: "translateX(-2.4%) translateY(-12.7%) scale(0.734)",
