@@ -86,6 +86,19 @@ body {
   min-height: 100%;
 }
 
+.cinematic-stage {
+  isolation: isolate;
+  contain: layout paint style;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+.scene-layer {
+  contain: paint style;
+  will-change: opacity;
+  backface-visibility: hidden;
+}
+
 ::selection {
   background: rgba(184, 164, 227, 0.35);
   color: #fff;

@@ -4,7 +4,7 @@ import { ScrollHint } from "../components/ScrollHint";
 import { useScrubVideo } from "../hooks/useScrubVideo";
 import { remap } from "../lib/timeline";
 
-const WORLD_DURATION = 10.5; // portion of world.mp4 the overture scrubs through
+const WORLD_DURATION = 9.87; // stay just inside the precise clip's final frame
 
 interface S0Props {
   localP: number; // 0..1 within S0

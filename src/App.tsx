@@ -140,7 +140,7 @@ function CinematicExperience({ onRead }: { onRead: () => void }) {
     return {
       "aria-hidden": opacity < 0.12,
       inert: opacity < 0.12,
-      className: "absolute inset-0",
+      className: "scene-layer absolute inset-0",
       style: { zIndex, opacity, pointerEvents: opacity > 0.15 ? ("auto" as const) : ("none" as const) },
     };
   };
@@ -153,7 +153,7 @@ function CinematicExperience({ onRead }: { onRead: () => void }) {
       <main className="app-root">
         <h1 id="cinematic-title" tabIndex={-1} className="sr-only">Ethan Gan — an autobiographical film</h1>
         <div ref={trackRef} style={{ height: `${TOTAL_VH * 100}vh`, position: "relative" }}>
-          <div ref={pinRef} className="overflow-hidden bg-black" style={{ width: "100%", height: "100vh" }}>
+          <div ref={pinRef} className="cinematic-stage overflow-hidden bg-black" style={{ width: "100%", height: "100vh" }}>
             {isSceneActive(progress, "s0", pad) && (
               <div {...layerProps("s0", 0)}><S0Overture localP={localProgress(progress, "s0")} /></div>
             )}

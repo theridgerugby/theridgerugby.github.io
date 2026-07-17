@@ -269,12 +269,11 @@ function HeroClip({
       />
       <video
         ref={ref}
-        src="/media/stag-hero.mp4"
         data-stag-video="hero"
         poster="/media/gallery/curtain.jpg"
         muted
         playsInline
-        preload="auto"
+        preload="metadata"
         onTimeUpdate={reportProgress}
         onEnded={() => onPlayback?.({ status: "ended", progress: 1 })}
         onError={() => {
@@ -283,7 +282,14 @@ function HeroClip({
         }}
         className="absolute inset-0 w-full h-full object-cover"
         style={{ opacity: failed ? 0 : 1 }}
-      />
+      >
+        <source
+          src="/media/stag-hero-hdr.mp4"
+          type='video/mp4; codecs="hvc1"'
+          media="(dynamic-range: high)"
+        />
+        <source src="/media/stag-hero.mp4" type='video/mp4; codecs="avc1"' />
+      </video>
     </div>
   );
 }

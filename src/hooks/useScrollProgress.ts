@@ -11,6 +11,8 @@ export function useScrollProgress(
 ) {
   const [progress, setProgress] = useState(0);
   const progressRef = useRef(0);
+  const pendingProgressRef = useRef(0);
+  const frameRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!trackRef.current || !pinRef.current) return;
@@ -21,24 +23,34 @@ export function useScrollProgress(
       end: "bottom bottom",
       pin: pinRef.current,
       pinSpacing: false,
-      scrub: 0.4,
+      scrub: 0.24,
       onUpdate: (self) => {
-        progressRef.current = self.progress;
-        setProgress(self.progress);
+        pendingProgressRef.current = self.progress;
+        if (frameRef.current !== null) return;
+
+        frameRef.current = window.requestAnimationFrame(() => {
+          frameRef.current = null;
+          const nextProgress = pendingProgressRef.current;
+          if (Math.abs(nextProgress - progressRef.current) < 0.00001) return;
+          progressRef.current = nextProgress;
+          setProgress(nextProgress);
+        });
       },
     });
 
-    // The scroll track is 15 viewports of mostly-async content (fonts, videos,
-    // the 4K pearson clip). If ScrollTrigger measures before that lays out, the
-    // pin collapses and progress saturates. Recompute once layout settles and
-    // whenever late assets finish loading.
+    // The track height is explicit, so one post-layout refresh plus late font
+    // and load events is enough. Repeated timed refreshes caused visible hitches.
     const refresh = () => ScrollTrigger.refresh();
-    const timers = [setTimeout(refresh, 150), setTimeout(refresh, 600), setTimeout(refresh, 1600)];
+    const refreshFrame = window.requestAnimationFrame(refresh);
     window.addEventListener("load", refresh);
     if (document.fonts?.ready) document.fonts.ready.then(refresh);
 
     return () => {
-      timers.forEach(clearTimeout);
+      window.cancelAnimationFrame(refreshFrame);
+      if (frameRef.current !== null) {
+        window.cancelAnimationFrame(frameRef.current);
+        frameRef.current = null;
+      }
       window.removeEventListener("load", refresh);
       st.kill();
     };
