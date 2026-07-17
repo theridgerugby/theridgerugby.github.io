@@ -83,6 +83,7 @@ function CinematicExperience({
   const [heroPlayback, setHeroPlayback] = useState<HeroPlayback>(READY_HERO);
   const [skippedToFinale, setSkippedToFinale] = useState(false);
   const transitioning = useRef(false);
+  const skipFinaleVisited = useRef(false);
   const heroReady = useRef(false);
   const revealWait = useRef<number | null>(null);
   const [primeHero, setPrimeHero] = useState(false);
@@ -113,6 +114,7 @@ function CinematicExperience({
     transitioning.current = true;
     if (destination === "finale") {
       setPrimeHero(true);
+      skipFinaleVisited.current = false;
       setSkippedToFinale(true);
     }
     setTransition({ destination, phase: "covering" });
@@ -185,10 +187,18 @@ function CinematicExperience({
   const finaleControlVisible = progress < finaleRange.start;
 
   useEffect(() => {
-    if (skippedToFinale && progress <= pearsonRange.end) {
+    if (!skippedToFinale) return;
+
+    if (progress >= finaleRange.start) {
+      skipFinaleVisited.current = true;
+      return;
+    }
+
+    if (skipFinaleVisited.current && progress <= pearsonRange.end) {
+      skipFinaleVisited.current = false;
       setSkippedToFinale(false);
     }
-  }, [pearsonRange.end, progress, skippedToFinale]);
+  }, [finaleRange.start, pearsonRange.end, progress, skippedToFinale]);
 
   const layerProps = (key: (typeof SCENE_ORDER)[number], zIndex: number) => {
     const opacity = sceneOpacity(progress, key);
@@ -245,6 +255,7 @@ function CinematicExperience({
                   arrivedViaSkip={skippedToFinale}
                   onResearch={() => navigateTo("research")}
                   onReplay={() => {
+                    skipFinaleVisited.current = false;
                     setSkippedToFinale(false);
                     window.scrollTo({ top: 0, behavior: "smooth" });
                   }}
