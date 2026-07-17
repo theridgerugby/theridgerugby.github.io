@@ -5,14 +5,21 @@ import { remap } from "../lib/timeline";
 
 interface S7Props {
   heroPlayback: HeroPlayback;
+  arrivedViaSkip: boolean;
   onResearch: () => void;
+  onReplay: () => void;
 }
 
 /**
  * S7 · Curtain — black stage; the A3 hero run autoplays full-frame in the
  * StagActor overlay; the signature line settles over it.
  */
-export function S7Curtain({ heroPlayback, onResearch }: S7Props) {
+export function S7Curtain({
+  heroPlayback,
+  arrivedViaSkip,
+  onResearch,
+  onReplay,
+}: S7Props) {
   const fallback = heroPlayback.status === "ended" || heroPlayback.status === "failed";
   const signature = fallback ? 1 : remap(heroPlayback.progress, 0.16, 0.5);
   const actions = fallback ? 1 : remap(heroPlayback.progress, 0.7, 0.94);
@@ -30,10 +37,12 @@ export function S7Curtain({ heroPlayback, onResearch }: S7Props) {
             tabIndex={-1}
             className="font-heading italic font-light text-white text-6xl tracking-[0.015em] text-center leading-tight outline-none"
           >
-            So, yeah—this is me. Ethan Gan.
+            {arrivedViaSkip ? "Ethan Gan" : "So, yeah—this is me. Ethan Gan."}
           </h2>
           <p className="mt-3 text-center font-heading italic font-light text-lg tracking-[0.035em] text-white/65">
-            thanks for watching.
+            {arrivedViaSkip
+              ? "Come back for the whole story when you have time :)"
+              : "thanks for watching."}
           </p>
         </div>
       </div>
@@ -73,7 +82,7 @@ export function S7Curtain({ heroPlayback, onResearch }: S7Props) {
         <GlassButton
           frost
           className="rounded-full px-5 py-2.5 font-body text-sm tracking-[0.08em] text-white"
-          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          onClick={onReplay}
         >
           <RotateCcw size={16} strokeWidth={1.7} aria-hidden="true" />
           Replay

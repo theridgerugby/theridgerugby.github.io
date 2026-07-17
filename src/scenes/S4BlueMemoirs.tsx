@@ -215,7 +215,6 @@ export function S4BlueMemoirs({ localP }: S4Props) {
 
       <div className="absolute inset-x-0 bottom-[24%] flex justify-center px-8" style={{ opacity: posterT * sceneFade, pointerEvents: "none" }}>
         <div className="relative inline-block px-16 py-8">
-          <div className="absolute inset-0 -z-10" style={{ background: "radial-gradient(130% 135% at 50% 50%, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.74) 48%, rgba(0,0,0,0) 100%)" }} />
           <BlurText
             text="As far back as I can remember, these fragments have made up my life."
             progress={textT}

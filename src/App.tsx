@@ -81,6 +81,7 @@ function CinematicExperience({
   const pad = 0.035;
   const [transition, setTransition] = useState<CinematicTransition | null>(null);
   const [heroPlayback, setHeroPlayback] = useState<HeroPlayback>(READY_HERO);
+  const [skippedToFinale, setSkippedToFinale] = useState(false);
   const transitioning = useRef(false);
   const heroReady = useRef(false);
   const revealWait = useRef<number | null>(null);
@@ -110,7 +111,10 @@ function CinematicExperience({
   const navigateTo = useCallback((destination: CinematicDestination) => {
     if (transitioning.current) return;
     transitioning.current = true;
-    if (destination === "finale") setPrimeHero(true);
+    if (destination === "finale") {
+      setPrimeHero(true);
+      setSkippedToFinale(true);
+    }
     setTransition({ destination, phase: "covering" });
   }, []);
 
@@ -231,7 +235,12 @@ function CinematicExperience({
               <div {...layerProps("s7", 8)}>
                 <S7Curtain
                   heroPlayback={heroPlayback}
+                  arrivedViaSkip={skippedToFinale}
                   onResearch={() => navigateTo("research")}
+                  onReplay={() => {
+                    setSkippedToFinale(false);
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
                 />
               </div>
             )}

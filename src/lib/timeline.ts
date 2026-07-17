@@ -2,7 +2,7 @@
 // Each scene gets a length in "viewport units" (vh multiples) determining
 // how much scroll distance it consumes relative to the others.
 export const SCENE_LENGTHS = {
-  s0: 3.2, // Overture — portrait/eyes/run/vault
+  s0: 4.2, // Overture — portrait/eyes/run/vault
   s1: 2.2, // The Question — WeChat beat
   s2: 2.4, // Arrival — slower Pearson scroll-scrub
   s3: 1.6, // Life Here — family-archive projector reel
