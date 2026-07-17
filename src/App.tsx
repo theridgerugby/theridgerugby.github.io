@@ -180,8 +180,15 @@ function CinematicExperience({
     [],
   );
 
+  const pearsonRange = SCENE_RANGES.find((range) => range.key === "s2")!;
   const finaleRange = SCENE_RANGES.find((range) => range.key === "s7")!;
   const finaleControlVisible = progress < finaleRange.start;
+
+  useEffect(() => {
+    if (skippedToFinale && progress <= pearsonRange.end) {
+      setSkippedToFinale(false);
+    }
+  }, [pearsonRange.end, progress, skippedToFinale]);
 
   const layerProps = (key: (typeof SCENE_ORDER)[number], zIndex: number) => {
     const opacity = sceneOpacity(progress, key);

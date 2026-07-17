@@ -41,7 +41,7 @@ export function S7Curtain({
           </h2>
           <p className="mt-3 text-center font-heading italic font-light text-lg tracking-[0.035em] text-white/65">
             {arrivedViaSkip
-              ? "Come back for the whole story when you have time :)"
+              ? "come back for the whole story when you have time:)"
               : "thanks for watching."}
           </p>
         </div>
