@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { MEDIA, POSTERS, preferredHeroSource } from "../lib/media";
 import { SCENE_RANGES } from "../lib/timeline";
 
 const ACTIVITY_EPSILON = 0.00001;
@@ -8,7 +9,9 @@ type CompanionPhase = "resting" | "running" | "settling";
 interface StagActorProps {
   progress: number; // global 0..1
   suppressMotion?: boolean;
+  primeHero?: boolean;
   onHeroPlayback?: (playback: HeroPlayback) => void;
+  onHeroReady?: (ready: boolean) => void;
 }
 
 export type HeroPlaybackStatus = "ready" | "playing" | "ended" | "failed";
@@ -31,14 +34,23 @@ export interface HeroPlayback {
  * origin bottom-center — so the standing stag occupies exactly the running
  * stag's footprint. Motion returns in 160ms; settling crossfades in 350ms.
  */
-export function StagActor({ progress, suppressMotion = false, onHeroPlayback }: StagActorProps) {
+export function StagActor({
+  progress,
+  suppressMotion = false,
+  primeHero = false,
+  onHeroPlayback,
+  onHeroReady,
+}: StagActorProps) {
   const s0 = SCENE_RANGES.find((r) => r.key === "s0")!;
+  const s6 = SCENE_RANGES.find((r) => r.key === "s6")!;
   const s7 = SCENE_RANGES.find((r) => r.key === "s7")!;
 
   const handoff = s0.end;
   const finaleStart = s7.start + (s7.end - s7.start) * 0.08;
   const hidden = progress < handoff; // baked into the WORLD footage during S0
   const inFinale = progress >= finaleStart;
+  const companionPrimed = progress >= handoff - 0.045;
+  const heroPrimed = primeHero || progress >= s6.start || inFinale;
 
   // ---- scroll activity detection ----
   const [companionPhase, setCompanionPhase] = useState<CompanionPhase>("resting");
@@ -99,7 +111,7 @@ export function StagActor({ progress, suppressMotion = false, onHeroPlayback }: 
         data-qa-stag-phase={companionPhase}
         aria-hidden="true"
       >
-        {!hidden && !inFinale && (
+        {companionPrimed && !inFinale && (
           <CompanionVideo
             phase={companionPhase}
             onSettled={handleSettled}
@@ -108,7 +120,7 @@ export function StagActor({ progress, suppressMotion = false, onHeroPlayback }: 
       </div>
 
       {/* A3 is preloaded, then plays through once when the finale is reached. */}
-      <HeroClip active={inFinale} onPlayback={onHeroPlayback} />
+      <HeroClip active={inFinale} prime={heroPrimed} onPlayback={onHeroPlayback} onReady={onHeroReady} />
     </>
   );
 }
@@ -157,14 +169,14 @@ function CompanionVideo({
   return (
     <>
       <img
-        src="/media/gallery/guide.jpg"
+        src={POSTERS.stagRun}
         alt=""
         className="absolute inset-0 w-full h-full object-contain object-bottom"
         style={{ opacity: running ? 1 : 0, transition: crossfade }}
         draggable={false}
       />
       <img
-        src="/media/gallery/idle.jpg"
+        src={POSTERS.stagIdle}
         alt=""
         className="absolute inset-0 w-full h-full object-contain object-bottom"
         style={{
@@ -178,10 +190,11 @@ function CompanionVideo({
       {/* A2 - gallop while scroll input is active */}
       <video
         ref={runRef}
-        src="/media/stag-run.mp4"
+        src={MEDIA.stagRun}
         data-stag-video="running"
-        poster="/media/gallery/guide.jpg"
+        poster={POSTERS.stagRun}
         muted loop playsInline
+        preload="auto"
         onError={() => setRunFailed(true)}
         className="absolute inset-0 w-full h-full object-contain object-bottom"
         style={{ opacity: running && !runFailed ? 1 : 0, transition: crossfade }}
@@ -189,10 +202,11 @@ function CompanionVideo({
       {/* B - one-shot settling clip; calibrated to A2 size and hoof line */}
       <video
         ref={idleRef}
-        src="/media/stag-idle.mp4"
+        src={MEDIA.stagIdle}
         data-stag-video="stopping"
-        poster="/media/gallery/idle.jpg"
+        poster={POSTERS.stagIdle}
         muted playsInline
+        preload="auto"
         onEnded={onSettled}
         onError={() => {
           setIdleFailed(true);
@@ -212,13 +226,27 @@ function CompanionVideo({
 
 function HeroClip({
   active,
+  prime,
   onPlayback,
+  onReady,
 }: {
   active: boolean;
+  prime: boolean;
   onPlayback?: (playback: HeroPlayback) => void;
+  onReady?: (ready: boolean) => void;
 }) {
   const ref = useRef<HTMLVideoElement>(null);
   const [failed, setFailed] = useState(false);
+  const [source, setSource] = useState(preferredHeroSource);
+  const lastAdvanceAt = useRef(Date.now());
+
+  useEffect(() => {
+    const video = ref.current;
+    if (!video || !prime) return;
+    onReady?.(false);
+    video.preload = "auto";
+    video.load();
+  }, [onReady, prime, source]);
 
   useEffect(() => {
     const video = ref.current;
@@ -239,11 +267,26 @@ function HeroClip({
       setFailed(true);
       onPlayback?.({ status: "failed", progress: 1 });
     });
-  }, [active, onPlayback]);
+  }, [active, onPlayback, source]);
+
+  useEffect(() => {
+    if (!active || failed) return;
+    lastAdvanceAt.current = Date.now();
+    const watchdog = window.setInterval(() => {
+      const video = ref.current;
+      if (!video || video.ended) return;
+      if (Date.now() - lastAdvanceAt.current < 7_000) return;
+      video.pause();
+      setFailed(true);
+      onPlayback?.({ status: "failed", progress: 1 });
+    }, 1_000);
+    return () => window.clearInterval(watchdog);
+  }, [active, failed, onPlayback, source]);
 
   const reportProgress = () => {
     const video = ref.current;
     if (!video || !Number.isFinite(video.duration) || video.duration <= 0) return;
+    lastAdvanceAt.current = Date.now();
     onPlayback?.({
       status: "playing",
       progress: Math.min(1, Math.max(0, video.currentTime / video.duration)),
@@ -262,7 +305,7 @@ function HeroClip({
       aria-hidden="true"
     >
       <img
-        src="/media/gallery/curtain.jpg"
+        src={POSTERS.stagHero}
         alt=""
         className="absolute inset-0 w-full h-full object-cover"
         draggable={false}
@@ -270,26 +313,29 @@ function HeroClip({
       <video
         ref={ref}
         data-stag-video="hero"
-        poster="/media/gallery/curtain.jpg"
+        poster={POSTERS.stagHero}
         muted
         playsInline
-        preload="metadata"
+        preload={prime ? "auto" : "metadata"}
+        onLoadedData={() => onReady?.(true)}
+        onCanPlay={() => onReady?.(true)}
         onTimeUpdate={reportProgress}
         onEnded={() => onPlayback?.({ status: "ended", progress: 1 })}
         onError={() => {
+          if (source !== MEDIA.stagHeroSdr) {
+            onReady?.(false);
+            setSource(MEDIA.stagHeroSdr);
+            setFailed(false);
+            return;
+          }
+          onReady?.(true);
           setFailed(true);
           onPlayback?.({ status: "failed", progress: 1 });
         }}
         className="absolute inset-0 w-full h-full object-cover"
         style={{ opacity: failed ? 0 : 1 }}
-      >
-        <source
-          src="/media/stag-hero-hdr.mp4"
-          type='video/mp4; codecs="hvc1"'
-          media="(dynamic-range: high)"
-        />
-        <source src="/media/stag-hero-sdr-hable.mp4" type='video/mp4; codecs="avc1"' />
-      </video>
+        src={source}
+      />
     </div>
   );
 }

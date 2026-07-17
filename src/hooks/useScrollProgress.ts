@@ -7,7 +7,8 @@ import { gsap, ScrollTrigger } from "../lib/gsap";
  */
 export function useScrollProgress(
   trackRef: React.RefObject<HTMLElement | null>,
-  pinRef: React.RefObject<HTMLElement | null>
+  pinRef: React.RefObject<HTMLElement | null>,
+  enabled = true,
 ) {
   const [progress, setProgress] = useState(0);
   const progressRef = useRef(0);
@@ -15,6 +16,7 @@ export function useScrollProgress(
   const frameRef = useRef<number | null>(null);
 
   useEffect(() => {
+    if (!enabled) return;
     if (!trackRef.current || !pinRef.current) return;
 
     const st = ScrollTrigger.create({
@@ -54,8 +56,7 @@ export function useScrollProgress(
       window.removeEventListener("load", refresh);
       st.kill();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [enabled, pinRef, trackRef]);
 
   return progress;
 }

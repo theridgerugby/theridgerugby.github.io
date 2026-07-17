@@ -38,4 +38,4 @@ Node `^20.19.0` or `>=22.12.0` is required by the current Oxlint toolchain.
 
 ## Media note
 
-The desktop film intentionally preserves the supplied high-resolution scrub footage. Posters and metadata preloading reduce first-frame fragility; compact and reduced-motion visitors receive the still-image reading experience instead.
+The desktop film uses purpose-built delivery renditions: short-GOP H.264 for scroll-scrubbed scenes, lightweight H.264 for the small stag companion, and a capability-selected HDR/SDR finale. A critical first-scene gate and staged prefetching prevent scroll from outrunning media; compact and reduced-motion visitors receive the still-image reading experience instead.

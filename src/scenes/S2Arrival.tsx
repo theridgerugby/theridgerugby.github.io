@@ -1,7 +1,8 @@
 import { useRef } from "react";
 import { useScrubVideo } from "../hooks/useScrubVideo";
+import { MEDIA, POSTERS } from "../lib/media";
 
-const PEARSON_DURATION = 23.15; // pearson.mp4 length (full 4K, all-intra for smooth scrub)
+const PEARSON_DURATION = 23.15;
 
 interface S2Props {
   localP: number; // 0..1 within S2 — drives the rightward pan by scroll
@@ -20,11 +21,11 @@ export function S2Arrival({ localP }: S2Props) {
     <div className="absolute inset-0 bg-black">
       <video
         ref={videoRef}
-        src="/media/pearson.mp4"
-        poster="/media/gallery/arrival.jpg"
+        src={MEDIA.arrival}
+        poster={POSTERS.arrival}
         muted
         playsInline
-        preload="metadata"
+        preload="auto"
         aria-hidden="true"
         className="absolute inset-0 w-full h-full object-cover"
       />

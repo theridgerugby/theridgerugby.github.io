@@ -1,12 +1,11 @@
 import { useEffect, useRef } from "react";
 
 /**
- * Smoothly scrubs a <video> to `targetTime` by COALESCING seeks: the next seek
- * is only issued once the previous one has actually presented (the `seeked`
- * event). This paces seeks to the decoder's real throughput instead of flooding
- * it on every scroll tick — which is exactly what makes high-resolution (even
- * 4K) scroll-scrubbing stutter. Pair with an all-intra encode (every frame a
- * keyframe) so each seek is a cheap single-frame decode. No downscaling needed.
+ * Smoothly scrubs a <video> to `targetTime` by coalescing seeks: the next seek
+ * is only issued after the previous one has presented (`seeked`). This paces
+ * work to the decoder instead of flooding it on every scroll tick. Pair it with
+ * a web-sized H.264 rendition, fast-start MP4 layout, and a short closed GOP;
+ * all-intra video is unnecessarily large for this interaction.
  */
 export function useScrubVideo(
   ref: React.RefObject<HTMLVideoElement | null>,

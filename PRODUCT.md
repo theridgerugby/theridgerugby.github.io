@@ -46,5 +46,5 @@ The story must remain complete for people on phones, tablets, zoomed browser lay
 
 - No audio.
 - No CV link until a real, publishable CV is supplied.
-- The high-resolution Pearson and stag footage is intentionally preserved; mobile and reduced-motion modes avoid loading it.
+- Production masters remain preserved outside the public delivery path. Desktop video renditions are sized and encoded for their actual interaction, while compact and reduced-motion modes avoid video payloads.
 - Family photographs are part of the authored narrative. They require an explicit privacy check before any public deployment.

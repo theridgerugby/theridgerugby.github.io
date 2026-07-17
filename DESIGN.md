@@ -115,7 +115,7 @@ Hover 物理：`translateY(-1px) scale(1.02)`，ease-out-expo，0.4 秒，无弹
 - 未知年份明确写 `year unknown`；不编造城市、器材或项目状态。
 - S3、S4 与 Reading mode 共享同一真实家庭档案。
 - 研究图只使用 Ethan 自己的结果图；BOLD5000 刺激图片不公开展示。
-- 视频保持原分辨率与编码；允许无损 fast-start remux。滚动逐帧的场景视频提供 poster，并以 `preload="metadata"` 延迟负载；小鹿 run / idle 在 S0 交接后才挂载，因为它们需要直接播放来响应滚动状态。
+- 原始母版保留在制作目录；公开投放版按实际展示尺寸与交互目的编码。滚动控制视频使用 H.264 MP4、fast-start 与短 GOP，并提供高清 poster；首幕只在静帧、字体、首帧和约 2.5 秒连续缓冲可用后开放滚动，后续素材按前一幕分阶段预取。小鹿 run / idle 使用适配 12vh 展示的 720p H.264；A3 保留 4K HEVC HDR，并提供单独选择的 1080p H.264 SDR fallback。
 - 图标使用成熟图标库；缺少真实视觉素材时优先等待原素材或调用正式图像生成流程，不用 CSS / SVG 假画占位。
 
 ## 8. 已决事项与开放边界

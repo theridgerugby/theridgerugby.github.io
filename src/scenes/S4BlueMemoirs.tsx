@@ -4,6 +4,7 @@ import { AccessibleDialog } from "../components/AccessibleDialog";
 import { BlurText } from "../components/BlurText";
 import { Polaroid } from "../components/Polaroid";
 import { useScrubVideo } from "../hooks/useScrubVideo";
+import { MEDIA, POSTERS } from "../lib/media";
 import { remap } from "../lib/timeline";
 
 const RIBS_FREEZE_T = 10.3;
@@ -127,11 +128,11 @@ export function S4BlueMemoirs({ localP }: S4Props) {
     <div className="absolute inset-0 bg-black overflow-hidden" style={{ perspective: "1400px" }}>
       <video
         ref={ribsRef}
-        src="/media/ribs.mp4"
-        poster="/media/desk/ribs-freeze.jpg"
+        src={MEDIA.ribs}
+        poster={POSTERS.ribs}
         muted
         playsInline
-        preload="metadata"
+        preload="auto"
         aria-hidden="true"
         className="absolute inset-0 w-full h-full object-cover"
         style={{ opacity: localP >= freezeEnd ? 0 : ribsOpacity }}

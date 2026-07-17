@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
+import { ExperienceLoader } from "./components/ExperienceLoader";
 import { GlassButton, GlassFilterDefs } from "./components/Glass";
 import { GrainVignette } from "./components/GrainVignette";
 import { ReadingExperience } from "./components/ReadingExperience";
 import { StageFrame } from "./components/StageFrame";
 import { StagActor, type HeroPlayback } from "./components/StagActor";
+import { type OpeningMediaState, useCriticalExperience } from "./hooks/useCriticalExperience";
+import { useMediaPrefetch } from "./hooks/useMediaPrefetch";
 import { useScrollProgress } from "./hooks/useScrollProgress";
 import { S0Overture } from "./scenes/S0Overture";
 import { S1TheQuestion } from "./scenes/S1TheQuestion";
@@ -60,14 +63,31 @@ function useAutomaticReadingMode() {
   return isReadingMode;
 }
 
-function CinematicExperience({ onRead }: { onRead: () => void }) {
+interface CinematicExperienceProps {
+  onRead: () => void;
+  loading: boolean;
+  onOpeningMediaState: (state: Partial<OpeningMediaState>) => void;
+}
+
+function CinematicExperience({
+  onRead,
+  loading,
+  onOpeningMediaState,
+}: CinematicExperienceProps) {
   const trackRef = useRef<HTMLDivElement>(null);
   const pinRef = useRef<HTMLDivElement>(null);
-  const progress = useScrollProgress(trackRef, pinRef);
-  const pad = 0.02;
+  const progress = useScrollProgress(trackRef, pinRef, !loading);
+  useMediaPrefetch(progress, !loading);
+  const pad = 0.035;
   const [transition, setTransition] = useState<CinematicTransition | null>(null);
   const [heroPlayback, setHeroPlayback] = useState<HeroPlayback>(READY_HERO);
   const transitioning = useRef(false);
+  const heroReady = useRef(false);
+  const revealWait = useRef<number | null>(null);
+  const [primeHero, setPrimeHero] = useState(false);
+  const handleHeroReady = useCallback((ready: boolean) => {
+    heroReady.current = ready;
+  }, []);
 
   const seekToScene = useCallback((destination: CinematicDestination) => {
     const track = trackRef.current;
@@ -90,6 +110,7 @@ function CinematicExperience({ onRead }: { onRead: () => void }) {
   const navigateTo = useCallback((destination: CinematicDestination) => {
     if (transitioning.current) return;
     transitioning.current = true;
+    if (destination === "finale") setPrimeHero(true);
     setTransition({ destination, phase: "covering" });
   }, []);
 
@@ -118,11 +139,27 @@ function CinematicExperience({ onRead }: { onRead: () => void }) {
 
     if (transition.phase === "covering") {
       seekToScene(transition.destination);
-      requestAnimationFrame(() => {
+      const reveal = () => {
         requestAnimationFrame(() => {
-          setTransition((current) => current ? { ...current, phase: "revealing" } : current);
+          requestAnimationFrame(() => {
+            setTransition((current) => current ? { ...current, phase: "revealing" } : current);
+          });
         });
-      });
+      };
+
+      if (transition.destination === "finale") {
+        const deadline = performance.now() + 2_800;
+        const revealWhenReady = () => {
+          if (heroReady.current || performance.now() >= deadline) {
+            reveal();
+            return;
+          }
+          revealWait.current = window.setTimeout(revealWhenReady, 80);
+        };
+        revealWhenReady();
+      } else {
+        reveal();
+      }
       return;
     }
 
@@ -131,6 +168,13 @@ function CinematicExperience({ onRead }: { onRead: () => void }) {
     transitioning.current = false;
     requestAnimationFrame(() => document.getElementById(focusId)?.focus({ preventScroll: true }));
   }, [seekToScene, transition]);
+
+  useEffect(
+    () => () => {
+      if (revealWait.current !== null) window.clearTimeout(revealWait.current);
+    },
+    [],
+  );
 
   const finaleRange = SCENE_RANGES.find((range) => range.key === "s7")!;
   const finaleControlVisible = progress < finaleRange.start;
@@ -155,7 +199,12 @@ function CinematicExperience({ onRead }: { onRead: () => void }) {
         <div ref={trackRef} style={{ height: `${TOTAL_VH * 100}vh`, position: "relative" }}>
           <div ref={pinRef} className="cinematic-stage overflow-hidden bg-black" style={{ width: "100%", height: "100vh" }}>
             {isSceneActive(progress, "s0", pad) && (
-              <div {...layerProps("s0", 0)}><S0Overture localP={localProgress(progress, "s0")} /></div>
+              <div {...layerProps("s0", 0)}>
+                <S0Overture
+                  localP={localProgress(progress, "s0")}
+                  onOpeningMediaState={onOpeningMediaState}
+                />
+              </div>
             )}
             {isSceneActive(progress, "s1", pad) && (
               <div {...layerProps("s1", 1)}><S1TheQuestion localP={localProgress(progress, "s1")} /></div>
@@ -206,7 +255,9 @@ function CinematicExperience({ onRead }: { onRead: () => void }) {
       <StagActor
         progress={progress}
         suppressMotion={transition !== null}
+        primeHero={primeHero}
         onHeroPlayback={setHeroPlayback}
+        onHeroReady={handleHeroReady}
       />
       <GrainVignette />
       {transition ? (
@@ -237,6 +288,15 @@ function App() {
   const [manualReadingMode, setManualReadingMode] = useState(false);
   const showReadingMode = automaticReadingMode || manualReadingMode;
   const previousReadingMode = useRef<boolean | null>(null);
+  const loaderActive = !showReadingMode;
+  const {
+    progress: loadingProgress,
+    released: loaderReleased,
+    unlocked: loaderUnlocked,
+    timedOut: loaderTimedOut,
+    reportOpeningMedia,
+  } = useCriticalExperience(loaderActive);
+  const interactionLocked = loaderActive && !loaderUnlocked;
 
   useEffect(() => {
     const root = document.documentElement;
@@ -255,6 +315,52 @@ function App() {
     return () => root.classList.remove("cinematic-scrollbar");
   }, [showReadingMode]);
 
+  useEffect(() => {
+    if (!interactionLocked) return;
+
+    const root = document.documentElement;
+    const body = document.body;
+    const previousRootOverflow = root.style.overflow;
+    const previousBodyOverflow = body.style.overflow;
+    const previousTouchAction = body.style.touchAction;
+    const previousRestoration = window.history.scrollRestoration;
+    const preventPointerScroll = (event: WheelEvent | TouchEvent) => event.preventDefault();
+    const preventKeyboardScroll = (event: KeyboardEvent) => {
+      if (["ArrowDown", "ArrowUp", "PageDown", "PageUp", "Home", "End", " "].includes(event.key)) {
+        event.preventDefault();
+      }
+    };
+
+    window.history.scrollRestoration = "manual";
+    root.classList.add("experience-loading");
+    root.style.overflow = "hidden";
+    body.style.overflow = "hidden";
+    body.style.touchAction = "none";
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    window.addEventListener("wheel", preventPointerScroll, { passive: false });
+    window.addEventListener("touchmove", preventPointerScroll, { passive: false });
+    window.addEventListener("keydown", preventKeyboardScroll);
+
+    return () => {
+      root.classList.remove("experience-loading");
+      root.style.overflow = previousRootOverflow;
+      body.style.overflow = previousBodyOverflow;
+      body.style.touchAction = previousTouchAction;
+      window.history.scrollRestoration = previousRestoration;
+      window.removeEventListener("wheel", preventPointerScroll);
+      window.removeEventListener("touchmove", preventPointerScroll);
+      window.removeEventListener("keydown", preventKeyboardScroll);
+    };
+  }, [interactionLocked]);
+
+  useEffect(() => {
+    if (!loaderActive || !loaderUnlocked) return;
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    requestAnimationFrame(() => {
+      document.getElementById("cinematic-title")?.focus({ preventScroll: true });
+    });
+  }, [loaderActive, loaderUnlocked]);
+
   return (
     <>
       <GlassFilterDefs />
@@ -267,8 +373,19 @@ function App() {
           <GrainVignette />
         </>
       ) : (
-        <CinematicExperience onRead={() => setManualReadingMode(true)} />
+        <div inert={interactionLocked} aria-hidden={interactionLocked}>
+          <CinematicExperience
+            onRead={() => setManualReadingMode(true)}
+            loading={interactionLocked}
+            onOpeningMediaState={reportOpeningMedia}
+          />
+        </div>
       )}
+      <ExperienceLoader
+        visible={loaderActive && !loaderReleased}
+        progress={loadingProgress}
+        timedOut={loaderTimedOut}
+      />
     </>
   );
 }
