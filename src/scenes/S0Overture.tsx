@@ -1,4 +1,4 @@
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { BlurText } from "../components/BlurText";
 import { ScrollHint } from "../components/ScrollHint";
 import type { OpeningMediaState } from "../hooks/useCriticalExperience";
@@ -49,6 +49,22 @@ export function S0Overture({ localP, onOpeningMediaState }: S0Props) {
     [onOpeningMediaState],
   );
 
+  // A cached video fires loadedmetadata/loadeddata/canplay before React ever
+  // attaches the handlers below, so the opening gate would wait forever on a
+  // video that is already complete. Report whatever the element has reached by
+  // the time we mount; the events then cover the cold-cache path.
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (video.error) {
+      onOpeningMediaState?.({ failed: true });
+      return;
+    }
+    if (video.readyState >= 1) reportMedia(video, { metadata: true });
+    if (video.readyState >= 2) reportMedia(video, { firstFrame: true });
+  }, [onOpeningMediaState, reportMedia]);
+
   return (
     <div className="absolute inset-0 overflow-hidden bg-black">
       <video
@@ -93,7 +109,7 @@ export function S0Overture({ localP, onOpeningMediaState }: S0Props) {
         className="absolute inset-0 flex items-center justify-center"
         style={{ opacity: endLineOpacity, pointerEvents: "none" }}
       >
-        <p className="font-heading italic font-light text-white text-6xl tracking-[0.015em] text-scrim text-center">
+        <p className="font-heading italic font-light text-white text-6xl tracking-[-0.02em] text-scrim text-center">
           and then, my childhood ended
         </p>
       </div>

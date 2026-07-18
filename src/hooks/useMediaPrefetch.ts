@@ -1,10 +1,10 @@
 import { useEffect, useRef } from "react";
-import { MEDIA, preferredHeroSource } from "../lib/media";
+import { MEDIA, POLAROID_SOURCES, preferredHeroSource } from "../lib/media";
 import { SCENE_RANGES } from "../lib/timeline";
 
 interface PrefetchStage {
   threshold: number;
-  sources: () => string[];
+  assets: () => Array<{ source: string; as: "image" | "video" }>;
 }
 
 const sceneStart = (key: "s1" | "s3" | "s6") =>
@@ -13,19 +13,25 @@ const sceneStart = (key: "s1" | "s3" | "s6") =>
 const PREFETCH_STAGES: PrefetchStage[] = [
   {
     threshold: 0.08,
-    sources: () => [MEDIA.stagRun, MEDIA.stagIdle],
+    assets: () => [
+      { source: MEDIA.stagRun, as: "video" },
+      { source: MEDIA.stagIdle, as: "video" },
+    ],
   },
   {
     threshold: sceneStart("s1"),
-    sources: () => [MEDIA.arrival],
+    assets: () => [{ source: MEDIA.arrival, as: "video" }],
   },
   {
     threshold: sceneStart("s3"),
-    sources: () => [MEDIA.ribs],
+    assets: () => [
+      { source: MEDIA.ribs, as: "video" },
+      ...POLAROID_SOURCES.map((source) => ({ source, as: "image" as const })),
+    ],
   },
   {
     threshold: sceneStart("s6"),
-    sources: () => [preferredHeroSource()],
+    assets: () => [{ source: preferredHeroSource(), as: "video" }],
   },
 ];
 
@@ -38,7 +44,7 @@ export function useMediaPrefetch(progress: number, enabled: boolean) {
     for (const stage of PREFETCH_STAGES) {
       if (progress < stage.threshold) continue;
 
-      for (const source of stage.sources()) {
+      for (const { source, as } of stage.assets()) {
         if (primed.current.has(source)) continue;
         const alreadyInDocument = Array.from(
           document.querySelectorAll<HTMLLinkElement>("link[data-cinematic-prefetch]"),
@@ -48,7 +54,7 @@ export function useMediaPrefetch(progress: number, enabled: boolean) {
 
         const link = document.createElement("link");
         link.rel = "prefetch";
-        link.as = "video";
+        link.as = as;
         link.href = source;
         link.dataset.cinematicPrefetch = source;
         document.head.appendChild(link);

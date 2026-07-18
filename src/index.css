@@ -307,6 +307,63 @@ body {
   }
 }
 
+/* Translucency is a preference, not a given. These viewers still get the
+   cinematic experience (only reduced motion and compact widths route to the
+   reading version), so the material has to answer for itself here: trade the
+   backdrop for an opaque surface rather than dropping the panel entirely. */
+@media (prefers-reduced-transparency: reduce) {
+  .glass,
+  .glass--frost {
+    background: rgba(14, 14, 20, 0.94);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  .glass::before {
+    opacity: 0.5;
+  }
+  .glass__shine,
+  .glass__specular,
+  .glass__fringe {
+    display: none;
+  }
+  .accessible-dialog {
+    background: rgba(3, 3, 5, 0.97);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+/* Near-solid grounds and a defined edge, so chrome never depends on a blur to
+   separate itself from the footage behind it. */
+@media (prefers-contrast: more) {
+  .glass,
+  .glass--frost {
+    background: rgba(8, 8, 12, 0.97);
+    border: 1px solid rgba(255, 255, 255, 0.85);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  .glass__shine,
+  .glass__specular,
+  .glass__fringe {
+    display: none;
+  }
+  .accessible-dialog {
+    background: rgba(0, 0, 0, 0.98);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  .experience-switch {
+    background: #000;
+    border-color: #fff;
+  }
+  .text-scrim {
+    text-shadow:
+      0 1px 2px #000,
+      0 0 6px #000;
+  }
+}
+
 /* ==========================================================================
    THEATRE SYSTEM (DESIGN.md §2) — grain, scrims
    ========================================================================== */
@@ -1125,7 +1182,13 @@ html.experience-loading body {
   inset: 0;
   overflow: hidden;
   position: fixed;
+  transition: opacity 420ms cubic-bezier(0.16, 1, 0.3, 1);
   z-index: 2000;
+}
+
+.experience-loader--dismissed {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .experience-loader > img {
@@ -1177,6 +1240,7 @@ html.experience-loading body {
   inset: 0;
   position: absolute;
   transform-origin: left center;
+  transition: transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .experience-loader__status output {

@@ -30,7 +30,7 @@ export function S6Research({ localP }: S6Props) {
     <div className="absolute inset-0 bg-black overflow-hidden">
       {/* ── Manifesto intertitle ── */}
       <div className="absolute inset-0 flex items-center justify-center px-16 pointer-events-none" style={{ opacity: manifesto }}>
-        <p className="font-heading italic font-light text-white text-5xl tracking-[0.015em] leading-snug text-center max-w-[30ch]">
+        <p className="font-heading italic font-light text-white text-5xl tracking-[-0.018em] leading-snug text-center max-w-[30ch]">
           and now, I want to understand how the human brain perceives the world — and why some of it feels special.
         </p>
       </div>

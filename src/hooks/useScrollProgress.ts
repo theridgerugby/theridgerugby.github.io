@@ -25,7 +25,9 @@ export function useScrollProgress(
       end: "bottom bottom",
       pin: pinRef.current,
       pinSpacing: false,
-      scrub: 0.24,
+      // Keep the smoothing short: longer scrubs read as input lag once the
+      // decoder-paced video seek latency is stacked on top.
+      scrub: 0.12,
       onUpdate: (self) => {
         pendingProgressRef.current = self.progress;
         if (frameRef.current !== null) return;

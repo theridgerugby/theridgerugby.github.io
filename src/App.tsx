@@ -83,6 +83,7 @@ function CinematicExperience({
   const [heroPlayback, setHeroPlayback] = useState<HeroPlayback>(READY_HERO);
   const [skippedToFinale, setSkippedToFinale] = useState(false);
   const transitioning = useRef(false);
+  const transitionJumped = useRef(false);
   const skipFinaleVisited = useRef(false);
   const heroReady = useRef(false);
   const revealWait = useRef<number | null>(null);
@@ -112,6 +113,7 @@ function CinematicExperience({
   const navigateTo = useCallback((destination: CinematicDestination) => {
     if (transitioning.current) return;
     transitioning.current = true;
+    transitionJumped.current = false;
     if (destination === "finale") {
       setPrimeHero(true);
       skipFinaleVisited.current = false;
@@ -123,20 +125,31 @@ function CinematicExperience({
   useEffect(() => {
     if (!transition) return;
 
-    const preventPointerScroll = (event: WheelEvent | TouchEvent) => event.preventDefault();
-    const preventKeyboardScroll = (event: KeyboardEvent) => {
+    const interruptTransition = () => {
+      if (revealWait.current !== null) {
+        window.clearTimeout(revealWait.current);
+        revealWait.current = null;
+      }
+      if (transition.destination === "finale" && !transitionJumped.current) {
+        skipFinaleVisited.current = false;
+        setSkippedToFinale(false);
+      }
+      setTransition(null);
+      transitioning.current = false;
+    };
+    const interruptKeyboardTransition = (event: KeyboardEvent) => {
       if (["ArrowDown", "ArrowUp", "PageDown", "PageUp", "Home", "End", " "].includes(event.key)) {
-        event.preventDefault();
+        interruptTransition();
       }
     };
 
-    window.addEventListener("wheel", preventPointerScroll, { passive: false });
-    window.addEventListener("touchmove", preventPointerScroll, { passive: false });
-    window.addEventListener("keydown", preventKeyboardScroll);
+    window.addEventListener("wheel", interruptTransition, { passive: true });
+    window.addEventListener("touchmove", interruptTransition, { passive: true });
+    window.addEventListener("keydown", interruptKeyboardTransition);
     return () => {
-      window.removeEventListener("wheel", preventPointerScroll);
-      window.removeEventListener("touchmove", preventPointerScroll);
-      window.removeEventListener("keydown", preventKeyboardScroll);
+      window.removeEventListener("wheel", interruptTransition);
+      window.removeEventListener("touchmove", interruptTransition);
+      window.removeEventListener("keydown", interruptKeyboardTransition);
     };
   }, [transition]);
 
@@ -145,6 +158,7 @@ function CinematicExperience({
 
     if (transition.phase === "covering") {
       seekToScene(transition.destination);
+      transitionJumped.current = true;
       const reveal = () => {
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {
@@ -157,6 +171,7 @@ function CinematicExperience({
         const deadline = performance.now() + 2_800;
         const revealWhenReady = () => {
           if (heroReady.current || performance.now() >= deadline) {
+            revealWait.current = null;
             reveal();
             return;
           }

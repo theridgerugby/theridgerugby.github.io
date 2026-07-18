@@ -17,6 +17,19 @@ export const POSTERS = {
   stagHero: "/media/gallery/curtain.jpg",
 } as const;
 
+export const POLAROID_SOURCES = [
+  "/media/polaroids/window-portrait.webp",
+  "/media/polaroids/dog-embrace.webp",
+  "/media/polaroids/rooftop-night.webp",
+  "/media/polaroids/sphere-night.webp",
+  "/media/polaroids/basketball-court.webp",
+  "/media/polaroids/rescued-cat.webp",
+  "/media/polaroids/raccoon-visitor.webp",
+  "/media/polaroids/campus-evening.webp",
+  "/media/polaroids/studio-room.webp",
+  "/media/polaroids/sparkler-night.webp",
+] as const;
+
 export function preferredHeroSource(): string {
   if (typeof window === "undefined") return MEDIA.stagHeroSdr;
 

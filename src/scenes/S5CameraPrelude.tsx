@@ -32,7 +32,7 @@ export function S5CameraPrelude({ localP }: S5CameraPreludeProps) {
           as="h2"
           text="I picked up my dad's old camera and started making my own"
           progress={reveal}
-          className="max-w-[27ch] text-center font-heading text-[clamp(2.2rem,4vw,4.2rem)] font-light italic leading-[1.16] tracking-[0.01em] text-white"
+          className="max-w-[27ch] text-center font-heading text-[clamp(2.2rem,4vw,4.2rem)] font-light italic leading-[1.12] tracking-[-0.02em] text-white"
         />
       </div>
     </section>

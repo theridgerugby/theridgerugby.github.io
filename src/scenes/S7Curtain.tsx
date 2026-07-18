@@ -35,7 +35,7 @@ export function S7Curtain({
           <h2
             id="finale-title"
             tabIndex={-1}
-            className="font-heading italic font-light text-white text-6xl tracking-[0.015em] text-center leading-tight outline-none"
+            className="font-heading italic font-light text-white text-6xl tracking-[-0.02em] text-center leading-tight outline-none"
           >
             {arrivedViaSkip ? "Ethan Gan" : "So, yeah—this is me. Ethan Gan."}
           </h2>

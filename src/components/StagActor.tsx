@@ -3,7 +3,16 @@ import { MEDIA, POSTERS, preferredHeroSource } from "../lib/media";
 import { SCENE_RANGES } from "../lib/timeline";
 
 const ACTIVITY_EPSILON = 0.00001;
-const STOP_DELAY_MS = 2000;
+// Short enough that the stag settles when you actually stop, long enough that
+// it does not flap on the micro-pauses inside one continuous scroll.
+const STOP_DELAY_MS = 650;
+const VELOCITY_SMOOTHING = 0.25;
+const MIN_PLAYBACK_RATE = 0.65;
+const MAX_PLAYBACK_RATE = 2;
+// Global progress-per-second -> extra playback rate. One viewport of scroll is
+// roughly 0.042 progress, so a brisk pull lands near 1.4x and a flick tops out.
+const RATE_PER_UNIT_SPEED = 8;
+const RATE_EASING = 0.12;
 type CompanionPhase = "resting" | "running" | "settling";
 
 interface StagActorProps {
@@ -57,9 +66,13 @@ export function StagActor({
   const handleSettled = useCallback(() => setCompanionPhase("resting"), []);
   const last = useRef(progress);
   const timer = useRef<number | null>(null);
+  const velocity = useRef(0);
+  const lastSampledAt = useRef<number | null>(null);
   useEffect(() => {
     if (suppressMotion || hidden || inFinale) {
       last.current = progress;
+      lastSampledAt.current = null;
+      velocity.current = 0;
       setCompanionPhase("resting");
       if (timer.current !== null) {
         window.clearTimeout(timer.current);
@@ -69,8 +82,19 @@ export function StagActor({
     }
 
     const distance = Math.abs(progress - last.current);
+    const now = performance.now();
+    const previousAt = lastSampledAt.current;
     last.current = progress;
+    lastSampledAt.current = now;
     if (distance < ACTIVITY_EPSILON) return;
+
+    // How hard the film is being pulled, smoothed. Carried by a ref so the
+    // gait can react every frame without re-rendering the tree to do it.
+    if (previousAt !== null) {
+      const elapsed = Math.max(1, now - previousAt);
+      const speed = distance / (elapsed / 1000);
+      velocity.current += (speed - velocity.current) * VELOCITY_SMOOTHING;
+    }
 
     setCompanionPhase("running");
     if (timer.current !== null) window.clearTimeout(timer.current);
@@ -115,6 +139,7 @@ export function StagActor({
           <CompanionVideo
             phase={companionPhase}
             onSettled={handleSettled}
+            velocity={velocity}
           />
         )}
       </div>
@@ -128,9 +153,11 @@ export function StagActor({
 function CompanionVideo({
   phase,
   onSettled,
+  velocity,
 }: {
   phase: CompanionPhase;
   onSettled: () => void;
+  velocity: React.RefObject<number>;
 }) {
   const runRef = useRef<HTMLVideoElement>(null);
   const idleRef = useRef<HTMLVideoElement>(null);
@@ -167,6 +194,34 @@ function CompanionVideo({
 
     stopVideo.pause();
   }, [onSettled, phase]);
+
+  // Match the gallop to the speed of the pull. A careful scroll and a hard
+  // flick used to produce an identical run cycle; now the gait carries the
+  // weight of the gesture, and winds down on its own once input stops.
+  useEffect(() => {
+    const runVideo = runRef.current;
+    if (!runVideo) return;
+
+    if (phase !== "running") {
+      runVideo.playbackRate = 1;
+      return;
+    }
+
+    let frame = 0;
+    const tick = () => {
+      const target = Math.min(
+        MAX_PLAYBACK_RATE,
+        Math.max(MIN_PLAYBACK_RATE, MIN_PLAYBACK_RATE + velocity.current * RATE_PER_UNIT_SPEED),
+      );
+      runVideo.playbackRate += (target - runVideo.playbackRate) * RATE_EASING;
+      // Decay between samples so a stopped scroll visibly slows the stag
+      // rather than holding its last speed until the settle clip takes over.
+      velocity.current *= 0.96;
+      frame = window.requestAnimationFrame(tick);
+    };
+    frame = window.requestAnimationFrame(tick);
+    return () => window.cancelAnimationFrame(frame);
+  }, [phase, velocity]);
 
   const handleIdleEnded = () => {
     setHasSettled(true);

@@ -218,7 +218,7 @@ export function S4BlueMemoirs({ localP }: S4Props) {
           <BlurText
             text="As far back as I can remember, these fragments have made up my life."
             progress={textT}
-            className="font-heading italic font-light text-white text-[2.15rem] leading-snug text-center max-w-[26ch] tracking-[0.015em] text-scrim"
+            className="font-heading italic font-light text-white text-[2.15rem] leading-snug text-center max-w-[26ch] tracking-[-0.014em] text-scrim"
           />
         </div>
       </div>
